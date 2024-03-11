@@ -1,6 +1,7 @@
 package com.jsl.Example.view
 
 import android.app.Activity
+import android.app.Notification.Action
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -8,18 +9,22 @@ import android.hardware.Camera
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceView
+import android.view.View
+import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -34,10 +39,21 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDefaults
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -47,10 +63,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -60,6 +78,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import com.jsl.Example.R
 import com.jsl.Example.ui.theme.ExampleTheme
 import com.jsl.Example.utils.CommonUtils
@@ -75,7 +95,6 @@ import kotlin.system.exitProcess
 class MainActivity : ComponentActivity() {
 
     val viewModel: MainViewModel = MainViewModel()
-    val TAG = MainActivity::class.qualifiedName
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,13 +111,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        var count: Int = 0
-        GlobalScope.launch(context = Dispatchers.IO){
-            while (count < 100){
-                count++
-                Log.e(TAG, count.toString())
-            }
-        }
     }
 
 }
@@ -111,32 +123,28 @@ fun TipTimeLayout() {
     val amount = amountInput.toDoubleOrNull() ?: 0.0
     val tipPercent = customTip.toDoubleOrNull() ?: 0.0
     val tip = CommonUtils.calculateTip(amount, tipPercent, roundUp)
-    val context = LocalContext.current
 
-    Column {
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            Text(text = "布局显示")
-            Text(text = "布局显示")
-        }
+    var showdialog by remember { mutableStateOf(false) }
+
+    Box {
         Column(
             modifier = Modifier
-                .statusBarsPadding()
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .safeDrawingPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            TopBar()
+            TopBar(
+                showdialog = { showdialog = !showdialog }
+            )
+            if (showdialog){
+                dialogTest()
+            }
             Text(
                 text = stringResource(R.string.calculate_tip),
                 modifier = Modifier
-                    .padding(bottom = 16.dp, top = 40.dp)
+                    .padding(bottom = 16.dp, top = 20.dp)
                     .align(alignment = Alignment.Start)
             )
             EditNumberField(
@@ -169,8 +177,7 @@ fun TipTimeLayout() {
 
             swtichRow(
                 roundUp = roundUp,
-                onRoundUpChanged = { roundUp = it },
-                context
+                onRoundUpChanged = { roundUp = it }
             )
 
             Text(
@@ -179,17 +186,87 @@ fun TipTimeLayout() {
                 modifier = Modifier.padding(top = 32.dp)
             )
 
-            userInfomation(modifier = Modifier.padding(10.dp))
+            userInfomation(modifier = Modifier.padding(30.dp))
 
             customLayout(text = "")
 
+            showMessage("显示SnackBar" )
 
             Spacer(modifier = Modifier.height(150.dp))
         }
     }
 }
 
+@Composable
+fun dialogTest(){
+    val context = LocalContext.current as Activity
+    AlertDialog(
+        onDismissRequest = { /*TODO*/ },
+        text = { Text(text = "请确认是否退出") },
+        dismissButton = {
+            Button(onClick = {  }) {
+                Text(text = "取消")
+            }
+        },
+        confirmButton = {
+            Button(onClick = { context.finish() }) {
+                Text(text = "确认")
+            }
+        }
+        )
+}
 
+@Composable
+fun showMessage(message: String){
+    val snackBarHost = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    Box(){
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    snackBarHost.showSnackbar("", duration = SnackbarDuration.Short) }
+                 }
+        ) {
+        }
+        SnackbarHost(   //使用SnackBar替换了Toast
+            hostState = snackBarHost,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ){
+            Snackbar(
+                contentColor = Color.Magenta,
+                shape = ShapeDefaults.ExtraSmall
+            ) {
+                Text(text = message)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun customSnack(modifier: Modifier = Modifier){
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text("Show snackbar") },
+                icon = { Icon(Icons.Filled.Share, contentDescription = "") },
+                onClick = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Snackbar")
+                    }
+                }
+            )
+        }
+    ) { contentPadding ->
+        TipTimeLayout()
+        Box(modifier = Modifier.padding(contentPadding))
+    }
+}
 
 @Composable
 fun playVideoTest(){
@@ -201,12 +278,12 @@ fun playVideoTest(){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar() {
+fun TopBar(showdialog: () -> Unit) {
     val context = LocalContext.current
     TopAppBar(
         title = { Text("这是标题") },
         navigationIcon = {
-            IconButton(onClick = { exitProcess(1) }) {
+            IconButton(onClick = showdialog ) {
                 Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "返回按钮")
             }
         },
@@ -247,8 +324,7 @@ fun EditNumberField(modifier: Modifier = Modifier,
 @Composable
 fun userInfomation(modifier: Modifier = Modifier){
     Row(modifier = modifier
-        .fillMaxWidth()
-        .padding(start = 20.dp)) {
+        .fillMaxWidth()) {
         Image(
             modifier = Modifier
                 .wrapContentSize()
@@ -298,7 +374,7 @@ fun customLayout(modifier: Modifier = Modifier, text: String){
 }
 
 @Composable
-fun swtichRow(roundUp: Boolean, onRoundUpChanged: (Boolean) -> Unit, context: Context, modifier: Modifier = Modifier){
+fun swtichRow(roundUp: Boolean, onRoundUpChanged: (Boolean) -> Unit, modifier: Modifier = Modifier){
     Row (modifier = modifier
         .fillMaxWidth()
         .padding(start = 40.dp, end = 40.dp)
@@ -312,20 +388,17 @@ fun swtichRow(roundUp: Boolean, onRoundUpChanged: (Boolean) -> Unit, context: Co
                 .fillMaxWidth()
                 .wrapContentWidth(Alignment.End),
             checked = roundUp,
-            onCheckedChange = { onRoundUpChanged }
+            onCheckedChange = onRoundUpChanged
         )
     }
-}
-
-@Composable
-fun cameraTest(){
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun GreetingPreview() {
     ExampleTheme {
-        TipTimeLayout()
+//        TipTimeLayout()
 //        playVideoTest()
+        customSnack()
     }
 }

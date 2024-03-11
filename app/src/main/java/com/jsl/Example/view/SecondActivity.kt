@@ -43,7 +43,7 @@ class SecondActivity : ComponentActivity() {
 
 @Composable
 fun preview(){
-    val context = LocalContext.current
+    val context = LocalContext.current as Activity
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -51,7 +51,7 @@ fun preview(){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "这是第二个Activity")
-        Button(onClick = {  }) {
+        Button(onClick = { context.finish()}) {
             Text(text = "返回按钮")
         }
     }
