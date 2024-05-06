@@ -1,21 +1,29 @@
 package com.jsl.Example.view
 
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.app.Notification.Action
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.hardware.Camera
 import android.os.Bundle
+import android.os.Message
+import android.provider.Settings.ACTION_WIFI_ADD_NETWORKS
 import android.util.Log
 import android.view.SurfaceView
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +39,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -46,6 +57,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Snackbar
@@ -64,6 +76,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +86,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,7 +94,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.SavedStateHandle
 import com.jsl.Example.R
+import com.jsl.Example.bean.ResponBean
 import com.jsl.Example.ui.theme.ExampleTheme
 import com.jsl.Example.utils.CommonUtils
 import com.jsl.Example.viewmodel.MainViewModel
@@ -88,21 +104,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.NumberFormat
+import java.util.Calendar
 import kotlin.system.exitProcess
 
 
 class MainActivity : ComponentActivity() {
 
-    val viewModel: MainViewModel = MainViewModel()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.init()
         setContent {
             ExampleTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -111,12 +125,25 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        val bean = ResponBean()
+        val unParameter = ResponBean("使用数据类时使用参数")
+        var copyBean = unParameter.copy("赋值Bean类数据后修改为这句话")
+        Log.e("测试数据类", bean.data)
+        Log.e("测试数据类", unParameter.data)
+        Log.e("测试数据类", copyBean.data)
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Toast.makeText(this, "show Message", Toast.LENGTH_LONG)
     }
 
 }
 
 @Composable
-fun TipTimeLayout() {
+fun TipTimeLayout() {       //页面显示
     var amountInput by remember { mutableStateOf("") }
     var customTip by remember { mutableStateOf("") }
     var roundUp by remember { mutableStateOf(false) }   //默认switch为false关
@@ -127,89 +154,114 @@ fun TipTimeLayout() {
     var showdialog by remember { mutableStateOf(false) }
 
     Box {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .safeDrawingPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+        Column() {
             TopBar(
                 showdialog = { showdialog = !showdialog }
             )
             if (showdialog){
-                dialogTest()
+                dialogTest { showdialog = !showdialog }
             }
-            Text(
-                text = stringResource(R.string.calculate_tip),
+            Column(
                 modifier = Modifier
-                    .padding(bottom = 16.dp, top = 20.dp)
-                    .align(alignment = Alignment.Start)
-            )
-            EditNumberField(
-                modifier = Modifier
-                    .padding(bottom = 32.dp)
-                    .fillMaxWidth(),
-                value = amountInput,
-                onValueChanged = { amountInput = it },
-                label = R.string.bill_amount,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                icon = R.drawable.ic_launcher_foreground
-            )
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .safeDrawingPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
 
-            EditNumberField(
-                modifier = Modifier
-                    .padding(bottom = 32.dp)
-                    .fillMaxWidth(),
-                value = customTip,
-                onValueChanged = { customTip = it },
-                label = R.string.how_was_the_service,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                icon = R.drawable.ic_launcher_foreground
-            )
+                Text(
+                    text = stringResource(R.string.calculate_tip),
+                    modifier = Modifier
+                        .padding(bottom = 16.dp, top = 20.dp)
+                        .align(alignment = Alignment.Start)
+                )
+                EditNumberField(
+                    modifier = Modifier
+                        .padding(bottom = 32.dp)
+                        .fillMaxWidth(),
+                    value = amountInput,
+                    onValueChanged = { amountInput = it },
+                    label = R.string.bill_amount,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
+                    icon = R.drawable.ic_launcher_foreground
+                )
 
-            swtichRow(
-                roundUp = roundUp,
-                onRoundUpChanged = { roundUp = it }
-            )
+                EditNumberField(
+                    modifier = Modifier
+                        .padding(bottom = 32.dp)
+                        .fillMaxWidth(),
+                    value = customTip,
+                    onValueChanged = { customTip = it },
+                    label = R.string.how_was_the_service,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    icon = R.drawable.ic_launcher_foreground
+                )
 
-            Text(
-                text = stringResource(R.string.tip_amount, tip),
-                style = MaterialTheme.typography.displaySmall,
-                modifier = Modifier.padding(top = 32.dp)
-            )
+                swtichRow(
+                    roundUp = roundUp,
+                    onRoundUpChanged = { roundUp = it }
+                )
 
-            userInfomation(modifier = Modifier.padding(30.dp))
+                Text(
+                    text = stringResource(R.string.tip_amount, tip),
+                    style = MaterialTheme.typography.displaySmall,
+                    modifier = Modifier.padding(top = 32.dp)
+                )
 
-            customLayout(text = "")
+                userInfomation(modifier = Modifier.padding(30.dp))
 
-            showMessage("显示SnackBar" )
+                outLineTest()
 
-            Spacer(modifier = Modifier.height(150.dp))
+                customLayout(text = "")
+
+
+                showMessage("显示SnackBar" )
+
+                Spacer(modifier = Modifier.height(150.dp))
+
+
+
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun dialogTest(){
+fun outLineTest(){  //输入框，类似EditText
+    var name by remember { mutableStateOf("") }
+    OutlinedTextField(
+        value = name,
+        onValueChange = { name = it },
+        label = { Text("Name") }
+    )
+}
+
+
+@Composable
+fun dialogTest(showDialog: () -> Unit){     //Dialog框
     val context = LocalContext.current as Activity
     AlertDialog(
         onDismissRequest = { /*TODO*/ },
         text = { Text(text = "请确认是否退出") },
         dismissButton = {
-            Button(onClick = {  }) {
+            Button(
+                onClick = showDialog
+            ) {
                 Text(text = "取消")
             }
         },
         confirmButton = {
-            Button(onClick = { context.finish() }) {
+            Button(
+                onClick = { context.finish() }
+            ) {
                 Text(text = "确认")
             }
         }
@@ -217,7 +269,7 @@ fun dialogTest(){
 }
 
 @Composable
-fun showMessage(message: String){
+fun showMessage(message: String){   //SnackBar，再Compose作为替代Toast
     val snackBarHost = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     Box(){
@@ -236,7 +288,15 @@ fun showMessage(message: String){
                 contentColor = Color.Magenta,
                 shape = ShapeDefaults.ExtraSmall
             ) {
-                Text(text = message)
+                Row {
+                    Text(text = message)
+                    Button(
+                        onClick = { /*TODO*/ }
+                    ) {
+                        Text(text = "Click")
+                    }
+                }
+
             }
         }
     }
@@ -244,7 +304,7 @@ fun showMessage(message: String){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun customSnack(modifier: Modifier = Modifier){
+fun customSnack(modifier: Modifier = Modifier){     //SnackBar
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -266,19 +326,12 @@ fun customSnack(modifier: Modifier = Modifier){
         TipTimeLayout()
         Box(modifier = Modifier.padding(contentPadding))
     }
-}
 
-@Composable
-fun playVideoTest(){
-    AndroidView(factory = {context ->
-        SurfaceView(context)
-    },
-    modifier = Modifier.fillMaxSize())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(showdialog: () -> Unit) {
+fun TopBar(showdialog: () -> Unit) {        //顶部栏，用于设置等
     val context = LocalContext.current
     TopAppBar(
         title = { Text("这是标题") },
