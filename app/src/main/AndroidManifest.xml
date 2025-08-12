@@ -33,8 +33,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.jsl.Example.view.SecondActivity" />
-        <activity android:name="com.jsl.Example.view.CameraActivity" />
+        <activity android:name=".view.SecondActivity" />
+        <activity android:name=".view.CameraActivity" />
+        <activity android:name=".view.SettingActivity"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

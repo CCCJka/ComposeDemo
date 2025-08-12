@@ -4,7 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import java.io.File
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 
 //静态类将class修改为object
 object CommonUtils {
@@ -31,5 +34,17 @@ object CommonUtils {
             context = context.baseContext
         }
         throw IllegalStateException("Permissions should be called in the context of an Activity")
+    }
+
+    fun Context.createImageFile(): File {
+        // Create an image file name
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val imageFileName = "JPEG_" + timeStamp + "_"
+        val image = File.createTempFile(
+            imageFileName, /* prefix */
+            ".jpg", /* suffix */
+            externalCacheDir      /* directory */
+        )
+        return image
     }
 }
