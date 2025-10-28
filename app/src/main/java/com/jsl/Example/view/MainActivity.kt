@@ -40,11 +40,6 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        Toast.makeText(this, "show Message", Toast.LENGTH_LONG)
-    }
-
 }
 
 

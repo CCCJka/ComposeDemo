@@ -25,6 +25,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,20 +46,36 @@ import com.jsl.Example.view.RegisterActivity
 
 var account = ""
 var password = ""
-var showdialog = false
+var dialogAccount = ""
+var dialogNewPassword = ""
 
 @Preview(showBackground = true)
 @Composable
 fun loginView(){
     val context = LocalContext.current
+    var dialogShowFlag by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize()
     ){
-        passwordView(
-            showDialog = {
-                showdialog = !showdialog
-            }
-        )
+        if (dialogShowFlag){
+            passwordView(
+                showDialog = {
+                    //点击dialog的取消后隐藏dialog
+                    dialogShowFlag = !dialogShowFlag
+                },
+                changePassword = {
+                    val userList = DbHelper.get().getUserList()
+                    for (item in userList){
+                        if (item.account.equals(dialogAccount)){
+                            item.pwd = dialogNewPassword
+                            DbHelper.get().saveUser(item)
+                            Toast.makeText(context, "更改用户密码成功，请登录", Toast.LENGTH_SHORT).show()
+                            break
+                        }
+                    }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -63,20 +83,20 @@ fun loginView(){
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            userInfo()
+            userInfo(onCLick = { dialogShowFlag = ! dialogShowFlag })
             loginOperation(
                 login = {
                     val userlist = DbHelper.get().getUserList()
                     if (userlist.isEmpty()){
-                        Toast.makeText(context, "请输入用户名和密码", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, "请输入用户名和密码", Toast.LENGTH_SHORT).show()
                     } else{
                         for (item in userlist){
                             if (item.account.equals(account) && item.pwd.equals(password)){
                                 CommonUtils.navigation(context, MainActivity::class.java)
                             } else if(item.account.equals(account) && !item.pwd.equals(password)) {
-                                Toast.makeText(context, "用户名或密码错误", Toast.LENGTH_SHORT)
+                                Toast.makeText(context, "用户名或密码错误", Toast.LENGTH_SHORT).show()
                             } else if(!item.account.equals(account) && !item.pwd.equals(password)) {
-                                Toast.makeText(context, "无该账户，请检查", Toast.LENGTH_SHORT)
+                                Toast.makeText(context, "请检查账户信息，请检查", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -89,7 +109,7 @@ fun loginView(){
 }
 
 @Composable
-fun userInfo(){
+fun userInfo(onCLick: () -> Unit){
     Box(
         modifier = Modifier
             .size(350.dp, 200.dp)
@@ -102,10 +122,7 @@ fun userInfo(){
             Row(
                 modifier = Modifier.align(alignment = Alignment.End)
             ) {
-                TextButton(
-                    onClick = {
-                        showdialog = !showdialog
-                    }) {
+                TextButton(onClick = onCLick) {
                     Text(
                         fontSize = 11.sp,
                         text = "忘记密码?"
@@ -184,36 +201,34 @@ fun loginOperation(login: () -> Unit, register: () -> Unit){
 }
 
 @Composable
-fun passwordView(showDialog: () -> Unit){
-    if (showdialog){
-        Dialog(
-            onDismissRequest = {  }
-        ) {
-            Column{
-                iconEditText(vector = Icons.Filled.AccountBox, info = "请输入账号") {
+fun passwordView(showDialog: () -> Unit, changePassword: () -> Unit){
+    Dialog(
+        onDismissRequest = {  },
+    ) {
+        Column(
+            modifier = Modifier.background(Color.White, RoundedCornerShape(10))
+        ){
+            iconEditText(vector = Icons.Filled.AccountBox, info = "请输入账号", onChange = { dialogAccount = it })
+            iconEditText(vector = Icons.Filled.Lock, info = "请输入新的密码", onChange = { dialogNewPassword = it })
+            Row(
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    modifier = Modifier
+                        .clickable( onClick = showDialog )
+                        .padding(top = 10.dp, end = 20.dp, bottom = 10.dp),
+                    text = "取消"
+                )
+                Text(
+                    modifier = Modifier
+                        .clickable( onClick =  {
 
-                }
-                iconEditText(vector = Icons.Filled.Lock, info = "请输入新的密码") {
-
-                }
-                Row(
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .clickable( onClick = showDialog ),
-                        text = "取消"
-                    )
-                    Text(
-                        modifier = Modifier
-                            .clickable( onClick =  {
-
-                            }),
-                        text = "确认"
-                    )
-                }
+                        })
+                        .padding(top = 10.dp, end = 20.dp, bottom = 10.dp),
+                    text = "确认"
+                )
             }
-
         }
+
     }
 }

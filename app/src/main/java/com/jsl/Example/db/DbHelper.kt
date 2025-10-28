@@ -47,10 +47,14 @@ class DbHelper private constructor(){
                 //第三个参数String[]： where语句的参数, 逐个替换where语句中的 "?" 占位符;
             }
         }
-        val history = ContentValues().apply {
+        val user = ContentValues().apply {
             put("name", userBean.name)
+            put("account", userBean.account)
+            put("pwd", userBean.pwd)
+            put("email", userBean.email)
+            put("phone", userBean.phone)
         }
-        db.insert("userTable", null, history)
+        db.insert("userTable", null, user)
     }
 
     fun getUserList(): List<UserBean>{

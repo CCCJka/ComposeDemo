@@ -16,7 +16,6 @@ import com.jsl.Example.ui.component.pwd
 import com.jsl.Example.ui.component.registerAccount
 import com.jsl.Example.ui.component.registerView
 import com.jsl.Example.ui.component.userName
-import com.jsl.Example.ui.component.verificationCode
 import com.jsl.Example.ui.theme.ExampleTheme
 
 class RegisterActivity: ComponentActivity() {
@@ -34,11 +33,24 @@ class RegisterActivity: ComponentActivity() {
 
                         },
                         register = {
-                            if (pwd.equals(confirmPwd)) {
-                                val userBean = UserBean(userName, registerAccount, pwd, email, phoneNumber)
-                                DbHelper.get().saveUser(userBean)
-                            } else {
-                                Toast.makeText(this, "注册信息有误，请检查", Toast.LENGTH_LONG)
+                            val userList = DbHelper.get().getUserList()
+                            var existUser = false
+                            for (item in userList){
+                                if (item.account.equals(registerAccount)){
+                                    existUser = true
+                                    break
+                                }
+                            }
+                            if (!existUser){
+                                if (pwd.equals(confirmPwd)) {
+                                    val userBean = UserBean(userName, registerAccount, pwd, email, phoneNumber)
+                                    DbHelper.get().saveUser(userBean)
+                                    Toast.makeText(this, "用户注册成功", Toast.LENGTH_LONG).show()
+                                } else {
+                                    Toast.makeText(this, "注册密码不同，请检查", Toast.LENGTH_LONG).show()
+                                }
+                            } else{
+                                Toast.makeText(this, "账号已存在，请检查", Toast.LENGTH_LONG).show()
                             }
                         })
                 }
