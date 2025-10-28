@@ -1,4 +1,4 @@
-package com.jsl.Example
+package com.jsl.Example.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,11 +18,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jsl.Example.R
 
 var userName = ""
 var registerAccount = ""
@@ -44,17 +40,17 @@ var verificationCode = ""
 var email = ""
 
 @Composable
-fun registerView(){
-
+fun registerView(exit: () -> Unit, getCode: () -> Unit, register: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Gray)
-    ){
+            .background(colorResource(id = R.color.login_background_color))
+    ) {
         Icon(
             modifier = Modifier
                 .padding(top = 10.dp)
-                .size(40.dp, 40.dp),
+                .size(40.dp, 40.dp)
+                .clickable(onClick = exit),
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = null)
         Text(
@@ -91,9 +87,8 @@ fun registerView(){
                                 colorResource(id = R.color.button_color),
                                 RoundedCornerShape(10.dp)
                             )
-                            .clickable {
-
-                            },
+                            .padding(top = 4.dp)
+                            .clickable(onClick = getCode),
                         fontSize = 12.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -104,19 +99,25 @@ fun registerView(){
                 }
                 iconEditText(vector = Icons.Filled.Email, info = "邮箱(选填)", onChange = { email = it })
 
-                Text(
+                Row(
                     modifier = Modifier
-
-                        .size(250.dp, 40.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .background(colorResource(id = R.color.button_color), RoundedCornerShape(30.dp))
-                        .clickable {
-
-                        },
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    text = "注册"
-                )
+                        .background(
+                            colorResource(id = R.color.button_color),
+                            RoundedCornerShape(30.dp)
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .size(250.dp, 40.dp)
+                            .clickable(onClick = register)
+                            .padding(10.dp),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        text = "注册"
+                    )
+                }
             }
         }
     }

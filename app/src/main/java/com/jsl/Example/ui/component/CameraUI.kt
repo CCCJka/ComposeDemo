@@ -1,4 +1,4 @@
-package com.jsl.Example
+package com.jsl.Example.ui.component
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
+import com.jsl.Example.BuildConfig
 import com.jsl.Example.utils.CommonUtils.createImageFile
 import java.util.Objects
 

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.jsl.Example
+package com.jsl.Example.ui.component
 
 import android.app.Activity
 import androidx.annotation.DrawableRes
@@ -60,10 +60,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.jsl.Example.R
 import com.jsl.Example.utils.CommonUtils
 import com.jsl.Example.view.SecondActivity
 import com.jsl.Example.view.SettingActivity
 import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 @Composable
 fun TipTimeLayout() {       //页面显示
@@ -164,7 +166,6 @@ fun outLineTest(){  //输入框，类似EditText
 
 @Composable
 fun dialogTest(showDialog: () -> Unit){     //Dialog框
-    val context = LocalContext.current as Activity
     AlertDialog(
         onDismissRequest = { /*TODO*/ },
         text = { Text(text = "请确认是否退出") },
@@ -177,7 +178,7 @@ fun dialogTest(showDialog: () -> Unit){     //Dialog框
         },
         confirmButton = {
             Button(
-                onClick = { context.finish() }
+                onClick = { exitProcess(0) }
             ) {
                 Text(text = "确认")
             }
@@ -249,11 +250,8 @@ fun TopBar(showdialog: () -> Unit) {        //顶部栏，用于设置等
             }
         },
         actions = {
-            IconButton(onClick = { }) {
-                Icon(imageVector = Icons.Filled.Share, contentDescription = null)
-            }
             IconButton(onClick = { CommonUtils.navigation(context, SecondActivity::class.java) }) {
-                Icon(imageVector = Icons.Filled.Build, contentDescription = null)
+                Icon(imageVector = Icons.Filled.Share, contentDescription = null)
             }
             IconButton(onClick = { CommonUtils.navigation(context, SettingActivity::class.java)}) {
                 Icon(imageVector = Icons.Filled.Settings, contentDescription = null)

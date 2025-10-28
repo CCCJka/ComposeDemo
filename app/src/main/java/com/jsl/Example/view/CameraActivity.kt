@@ -1,6 +1,5 @@
 package com.jsl.Example.view
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.jsl.Example.AppContent
+import com.jsl.Example.ui.component.AppContent
 import com.jsl.Example.ui.theme.ExampleTheme
 
 class CameraActivity: ComponentActivity() {

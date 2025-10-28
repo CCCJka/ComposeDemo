@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.jsl.Example.bean.ResponBean
-import com.jsl.Example.customSnack
+import com.jsl.Example.ui.component.customSnack
 import com.jsl.Example.ui.theme.ExampleTheme
 
 class MainActivity : ComponentActivity() {

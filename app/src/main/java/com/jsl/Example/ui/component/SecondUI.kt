@@ -1,4 +1,4 @@
-package com.jsl.Example
+package com.jsl.Example.ui.component
 
 import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement

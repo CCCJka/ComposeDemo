@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.jsl.Example.application.MyApplication
 import com.jsl.Example.db.bean.UserBean
+import java.util.ArrayList
 
 class DbHelper private constructor(){
 
@@ -28,7 +29,7 @@ class DbHelper private constructor(){
 
     fun init(){
         val db = dbCommon.writableDatabase
-        val cursor = db.query("HistoryTable", null, null, null, null, null, null)
+        val cursor = db.query("userTable", null, null, null, null, null, null)
         if (cursor.count > 0){
             Log.i("", "数据库已存在")
         } else{
@@ -38,8 +39,8 @@ class DbHelper private constructor(){
 
     fun saveUser(userBean: UserBean){
         val db =  dbCommon.writableDatabase
-        val historyList = getUserList()
-        for (item in historyList){
+        val userList = getUserList()
+        for (item in userList){
             if (userBean.name == item.name){
                 db.delete("userTable", "name=?", arrayOf(userBean.name))
                 //第二个参数String：where选择语句, 选择哪些行要被删除, 如果为null, 就删除所有行;
@@ -76,7 +77,7 @@ class DbHelper private constructor(){
     }
 
     class DbCommonClass(val context: Context, name: String, version: Int): SQLiteOpenHelper(context, name, null, version){
-        private val createTable = "create table HistoryTable (" +
+        private val createTable = "create table userTable (" +
                 " id integer primary key autoincrement," +
                 " name text," +
                 " account text," +

@@ -11,7 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.jsl.Example.ui.theme.ExampleTheme
-import com.jsl.Example.webviewTest
+import com.jsl.Example.ui.component.webviewTest
 
 class WebViewActivity: ComponentActivity() {
 

@@ -1,4 +1,4 @@
-package com.jsl.Example
+package com.jsl.Example.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.jsl.Example.R
 
 @Composable
 fun iconEditText(vector: ImageVector, info: String, onChange: (String) -> Unit){
@@ -57,7 +61,9 @@ fun iconEditText(vector: ImageVector, info: String, onChange: (String) -> Unit){
             singleLine = true,
             decorationBox = { innerTextField ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 3.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(imageVector = vector, contentDescription = null)
@@ -83,11 +89,11 @@ fun iconEditText(vector: ImageVector, info: String, onChange: (String) -> Unit){
                             contentDescription = null,
                             // 点击就清空text
                             modifier = Modifier
+                                .padding(end = 10.dp)
                                 .clickable { value = "" }
                         )
                     }
                 }
-
             }
         )
     }

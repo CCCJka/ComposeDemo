@@ -1,4 +1,4 @@
-package com.jsl.Example
+package com.jsl.Example.ui.component
 
 import android.content.Intent
 import android.graphics.Bitmap
